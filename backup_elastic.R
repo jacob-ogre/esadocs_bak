@@ -1,3 +1,4 @@
+#! /usr/bin/r
 # BSD_2_clause
 
 library(elasticdumpr)
@@ -5,9 +6,10 @@ library(digest)
 library(dplyr)
 library(R.utils)
 
-readRenviron("/Users/jacobmalcom/.Renviron")
+# readRenviron("/Users/jacobmalcom/.Renviron")
+readRenviron("/home/jacobmalcom/.Renviron")
 
-BASE_DIR <- path.expand("~/Work/Data/ESAdocs_ES_bak")
+BASE_DIR <- path.expand("~/Data/ESAdocs_ES_bak")
 STAGE_DIR <- file.path(BASE_DIR, "staging")
 DATA_DIR <- file.path(BASE_DIR, "data")
 INFO_DIR <- file.path(BASE_DIR, "info")
@@ -15,41 +17,6 @@ LOG_PATH <- file.path(INFO_DIR, "esadocs_es_bak.log")
 TYPES <- c("candidate", "conserv_agmt", "consultation",
            "federal_register", "five_year_review", "misc",
            "policy", "recovery_plan")
-
-bak_analyzer_res <- es_analyzer_backup(
-  "http://localhost:9200",
-  "esadocs",
-  STAGE_DIR
-)
-
-bak_maps_res <- sapply(
-  TYPES,
-  FUN = es_mapping_backup,
-  server = "http://localhost:9200",
-  index = "esadocs",
-  bak_dir = STAGE_DIR
-)
-
-bak_data_res <- sapply(
-  TYPES,
-  FUN = es_data_backup,
-  server = "http://localhost:9200",
-  index = "esadocs",
-  bak_dir = STAGE_DIR
-)
-
-fils <- list.files(STAGE_DIR, pattern = "*.json", full.names = TRUE)
-md5s <- sapply(fils, digest, file = TRUE)
-size <- sapply(fils, file.size)
-bak_dat <- data_frame(file = names(md5s),
-                   md5 = as.vector(md5s),
-                   size = as.vector(size),
-                   date = Sys.Date())
-save(bak_dat,
-     file = file.path(INFO_DIR, paste0("bak_data_", Sys.Date(), ".rda")))
-gzip_res <- sapply(fils, gzip)
-nfil <- paste0(fils, ".gz")
-mv_res <- file.rename(nfil, gsub(nfil, pattern = "staging", replacement = "data"))
 
 ############################################################################
 # Runner
@@ -178,7 +145,7 @@ for(i in 1:dim(combo_data)[1]) {
         Sys.time(), "\tno_updates\t", cur_rec$category, "\t", cur_rec$type, "\t",
         cur_rec$file, "\n"
       )
-      new_cmd <- paste("echo '", new_msg, "' >>", LOG_PATH)
+      new_cmd <- paste0("echo '", new_msg, "' >> ", LOG_PATH)
       system(new_cmd, intern = FALSE, wait = TRUE)
     }
   }
