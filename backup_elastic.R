@@ -151,10 +151,10 @@ for(i in 1:dim(combo_data)[1]) {
   }
 }
 
-if(updated) {
+# if(updated) {
   save(bak_dat,
        file = file.path(INFO_DIR, paste0("bak_data_", Sys.Date(), ".rda")))
-}
+# }
 
 # Now to gzip
 new_fils <- list.files(DATA_DIR, pattern = "json$", full.names = TRUE)
